@@ -44,13 +44,8 @@ SOLAR_WIND_FLAG_COLS = ["density_missing", "filled_by_model"]
 
 # 鍦扮瑙傛祴鍒?
 GEOMAG_COLS = [
-    "X", "Y", "Z",
-    "X_pert", "Y_pert", "Z_pert", "H_pert",
-    "dX_pert_dt", "dY_pert_dt", "dZ_pert_dt", "dH_pert_dt",
 ]
 GEOMAG_RAW_PERT_COLS = [
-    "X", "Y", "Z",
-    "X_pert", "Y_pert", "Z_pert", "H_pert",
 ]
 
 # 目标列
@@ -63,8 +58,8 @@ TARGET_LOU_COL = "gic_lou_abs"
 TARGET_DBHDT_COL = "dbhdt_abs"
 # Input feature for D group: absolute dBH/dt (kept separate from target columns).
 TARGET_DBHDT_FEATURE_COL = "dbhdt_abs_feature"
-TARGET_COLUMNS = [TARGET_VYK_COL, TARGET_LOU_COL, TARGET_DBHDT_COL]
-RAW_TARGET_COLUMNS = [TARGET_VYK_RAW_COL, TARGET_LOU_RAW_COL, TARGET_DBHDT_RAW_COL]
+TARGET_COLUMNS = [TARGET_VYK_COL, TARGET_LOU_COL]
+RAW_TARGET_COLUMNS = [TARGET_VYK_RAW_COL, TARGET_LOU_RAW_COL]
 DBHDT_SOURCE_CANDIDATES = ["dH_pert_dt", "dBH_dt", "dB_dt", "dH_dt"]
 DEFAULT_STORM_TARGET_COL = TARGET_VYK_COL
 
@@ -87,9 +82,9 @@ FEATURE_SET_DEFINITIONS = {
     "A": SOLAR_WIND_RAW_COLS,
     "B": SOLAR_WIND_RAW_COLS + SOLAR_WIND_COUPLING_COLS,
     # C缁勪弗鏍奸檺鍒? 浠呭湴纾佸師濮嬪弬鏁?+ 鎵板姩, 涓嶅惈瀵兼暟
-    "C": SOLAR_WIND_RAW_COLS + SOLAR_WIND_COUPLING_COLS + GEOMAG_RAW_PERT_COLS,
+    "C": SOLAR_WIND_RAW_COLS + SOLAR_WIND_COUPLING_COLS,
     # D group: C + |dBH/dt| feature
-    "D": SOLAR_WIND_RAW_COLS + SOLAR_WIND_COUPLING_COLS + GEOMAG_RAW_PERT_COLS + [TARGET_DBHDT_FEATURE_COL],
+    "D": SOLAR_WIND_RAW_COLS + SOLAR_WIND_COUPLING_COLS,
 }
 EXPERIMENT_FEATURE_SETS = ["A", "B", "C", "D"]
 EXPERIMENT_TARGETS = [TARGET_VYK_COL]

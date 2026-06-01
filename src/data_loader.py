@@ -415,11 +415,8 @@ def prepare_targets(df: pd.DataFrame) -> pd.DataFrame:
         print("[目标处理] 警告: 缺少 Loukhi 列，将填充为 NaN（对应实验可在主流程跳过）")
         df[TARGET_LOU_RAW_COL] = np.nan
 
-    dbhdt_col = _resolve_dbhdt_source(df)
-
     # Raw series are stored for distribution analysis and export.
     df[TARGET_VYK_RAW_COL] = df[TARGET_COL].astype(np.float32)
-    df[TARGET_DBHDT_RAW_COL] = df[dbhdt_col].astype(np.float32)
     if TARGET_LOU_RAW_COL in df.columns:
         bad_count = sanitize_loukhi_column_inplace(df, TARGET_LOU_RAW_COL)
         if bad_count > 0:
@@ -431,14 +428,21 @@ def prepare_targets(df: pd.DataFrame) -> pd.DataFrame:
     if USE_TARGET_CLIP:
         df[TARGET_VYK_COL] = df[TARGET_VYK_RAW_COL].abs().clip(0, TARGET_MAX_CLIP)
         df[TARGET_LOU_COL] = df[TARGET_LOU_RAW_COL].abs().clip(0, TARGET_MAX_CLIP)
-        df[TARGET_DBHDT_COL] = df[TARGET_DBHDT_RAW_COL].abs().clip(0, TARGET_MAX_CLIP)
     else:
         df[TARGET_VYK_COL] = df[TARGET_VYK_RAW_COL].abs()
         df[TARGET_LOU_COL] = df[TARGET_LOU_RAW_COL].abs()
-        df[TARGET_DBHDT_COL] = df[TARGET_DBHDT_RAW_COL].abs()
 
-    # D-group input feature uses |dBH/dt| (not signed raw).
-    df[TARGET_DBHDT_FEATURE_COL] = df[TARGET_DBHDT_RAW_COL].abs().astype(np.float32)
+    try:
+        dbhdt_col = _resolve_dbhdt_source(df)
+    except KeyError:
+        dbhdt_col = None
+    if dbhdt_col is not None:
+        df[TARGET_DBHDT_RAW_COL] = df[dbhdt_col].astype(np.float32)
+        if USE_TARGET_CLIP:
+            df[TARGET_DBHDT_COL] = df[TARGET_DBHDT_RAW_COL].abs().clip(0, TARGET_MAX_CLIP)
+        else:
+            df[TARGET_DBHDT_COL] = df[TARGET_DBHDT_RAW_COL].abs()
+        df[TARGET_DBHDT_FEATURE_COL] = df[TARGET_DBHDT_RAW_COL].abs().astype(np.float32)
 
     for col in TARGET_COLUMNS:
         df[col] = df[col].astype(np.float32)

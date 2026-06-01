@@ -1,10 +1,8 @@
 """
 Solar-wind propagation-lag threshold and quantile ablation.
 
-This script is intentionally separate from threshold_quantile_ablation.py.
-It keeps the earlier geomagnetic-response experiment intact as a short-time
-estimation baseline, and rebuilds true lead-time solar-wind features from
-raw 1-minute columns only.
+This script rebuilds true lead-time solar-wind features from raw 1-minute
+columns only.
 
 For a row at GIC time t:
   - point lag L uses solar wind at t-L minutes
@@ -32,7 +30,6 @@ from src.config import (
     SOLAR_WIND_FLAG_COLS,
     TARGET_COL,
     TARGET_COLUMNS,
-    TARGET_DBHDT_RAW_COL,
     TARGET_VYK_COL,
 )
 from src.data_loader import build_vkh_event_type_report, prepare_targets
@@ -72,11 +69,6 @@ CACHE_VERSION = "solar_lagged_features_v2"
 
 TARGET_SOURCE_COLS = [
     TARGET_COL,
-    TARGET_DBHDT_RAW_COL,
-    "dH_pert_dt",
-    "dBH_dt",
-    "dB_dt",
-    "dH_dt",
 ]
 
 

@@ -9,6 +9,9 @@ risk thresholds using L1 solar-wind observations, physics-driven propagation
 lag features, CNN-BiLSTM models, event-level metrics, and SHAP-style feature
 attribution.
 
+This repository contains the research code for the paper “Physics-Driven Feature Construction and Solar Wind Lag Effects in Lead-Time Forecasting of Intense Geomagnetically Induced Currents”. The project focuses on advance prediction of intense geomagnetically induced current (GIC) events at the Vykhodnoy 220kV substation in Russia. Based on 1-minute solar wind observations from the ACE spacecraft at the L1 point and measured GIC data from 2012 to 2022, the code constructs physics-driven solar wind lag-window features and evaluates whether the future 30-minute peak |GIC| exceeds different warning thresholds. The repository includes scripts for nonlinear feature-GIC dependence analysis, solar wind propagation-lag ablation, CNN-BiLSTM based threshold prediction, event-level warning evaluation,  and SHAP-style feature attribution.  Data source information and local data placement instructions are provided in the `data/README.md`file. This code is intended to support reproducibility of the paper’s main workflow and to provide a clear implementation reference for lead-time GIC event forecasting using upstream solar wind information.
+
+
 ## Repository Structure
 
 ```text

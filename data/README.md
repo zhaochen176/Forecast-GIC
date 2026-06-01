@@ -33,7 +33,7 @@ Column aliases are handled in `scripts/build_merged_dataset.py`. The required
 standard variables are:
 
 ```text
-Solar wind: Btot, Bx_gse, By_gse, Bz_gse, Vp, Np
+Solar wind: Btot, Bx_gse, By_gse, Bz_gse, Vp, Np, Ma
 GIC: gic
 ```
 

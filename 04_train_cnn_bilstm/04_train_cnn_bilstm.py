@@ -351,7 +351,7 @@ def experiment_protocol():
     return {
         "provenance": "Forecast-GIC executable experiment configuration",
         "thresholds_A": [3, 5, 10, 20],
-        "target": "maximum absolute native-minute GIC in [s+h,s+h+30min), peak >= threshold",
+        "target": "maximum absolute native-minute GIC in [t+h,t+h+30min), peak >= threshold",
         "features": FEATURES,
         "input": {"minutes": 30, "streams": "latest and delta-delayed; duplicate latest at delta=0"},
         "alignment": {"mfi_age_seconds": 60, "swe_guard_seconds": 120, "swe_guarded_age_seconds": 120,

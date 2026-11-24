@@ -1,6 +1,6 @@
 """Stage 03: construct the revision's 49 features, segments and future targets.
 
-Target: maximum absolute GIC in [s+h, s+h+30 min); no missing-value imputation.
+Target: maximum absolute GIC in [t+h, t+h+30 min); no missing-value imputation.
 FA contains seven upstream quantities; FB contains 49 derived input features.
 """
 from pathlib import Path
@@ -93,7 +93,7 @@ def solar_frame(issue_times):
 
 
 def future_peak(gic_abs, horizon=0, width=30):
-    """At s use bins s+h,...,s+h+width-1. Never impute a target."""
+    """At issue time t use bins t+h,...,t+h+width-1. Never impute a target."""
     series = pd.Series(gic_abs)
     return series.rolling(width,min_periods=width).max().shift(-(width-1+horizon)).to_numpy(np.float32)
 

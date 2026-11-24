@@ -1,4 +1,4 @@
-# Probabilistic Forecasting of Geomagnetically Induced Current Threshold Exceedance from L1 Solar Wind Observations
+# Upstream-only probabilistic GIC forecasting
 
 Source code for station-specific forecasts of 30-minute GIC exceedances at 3, 5, 10 and 20 A. The software consists of five Python programs covering data acquisition, preprocessing, feature construction, model training and evaluation.
 
@@ -52,7 +52,7 @@ The smoke phase needs at least one prepared training segment containing all four
 
 ## Experimental contract
 
-All times are UTC. Inputs are upstream observations available strictly before issue time; historical GIC is used only for training/evaluation targets. The target is the maximum absolute native-minute GIC in `[s+h, s+h+30 min)`, thresholded using `>=`. Missing inputs or target minutes exclude a forecast; gaps are not interpolated.
+All times are UTC. Inputs are upstream observations available strictly before issue time; historical GIC is used only for training/evaluation targets. The forecast issue time is denoted by `t`, and the forecast horizon by `h`. The target is the maximum absolute native-minute GIC in `[t+h, t+h+30 min)`, thresholded using `>=`. The primary forecast uses `h=0`, so its target window is `[t, t+30 min)`. Missing inputs or target minutes exclude a forecast; gaps are not interpolated.
 
 Blocks 1–30 train the models and preprocessing; 31–35 select delayed context using common eligible issue times; 36–40 calibrate probabilities; 41–49 form the event test. Calendar year 2022 is the complementary continuous evaluation. Training stride is five minutes and evaluation stride is one minute. Context delay and forecast horizon vary separately. Primary decisions use calibrated, ordered probabilities at a fixed cutoff of 0.5; calibration-selected CSI cutoffs are secondary.
 
@@ -62,6 +62,6 @@ Stage 05 generates Figures 1–7 and S1–S2 with the final submission's numberi
 
 ## Software archive and citation
 
-This software can be deposited directly in Zenodo as a software record. Cite the published record's specific version DOI and include the software citation in the associated article's reference list. The observation providers and local-input requirements are described in Stage 02; observations and trained model weights are not bundled with this source archive.
+The project repository is https://github.com/zhaochen176/Forecast-GIC. When publishing this version, create a release or tag so readers can identify the exact code used in the study. The observation providers and local-input requirements are described in Stage 02; observations and trained model weights are not bundled with this source archive.
 
 MIT source license: [LICENSE](LICENSE). Observations and other external materials retain their providers' terms: [LICENSES.md](LICENSES.md).

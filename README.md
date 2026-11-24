@@ -1,50 +1,67 @@
-# Probabilistic Forecasting of Geomagnetically Induced Current Threshold Exceedance
+# Upstream-only probabilistic GIC forecasting
 
-## Purpose of This Repository
+Source code for station-specific forecasts of 30-minute GIC exceedances at 3, 5, 10 and 20 A. The software consists of five Python programs covering data acquisition, preprocessing, feature construction, model training and evaluation.
 
-This repository provides the source code for the study **“Probabilistic Forecasting of Geomagnetically Induced Current Threshold Exceedance from L1 Solar Wind Observations.”** The project develops a probabilistic early-warning method for geomagnetically induced current (GIC) at the Vykhodnoy (VKH) 330 kV substation. Given measurements observed at the L1 solar-wind monitor, the method estimates the probability that the maximum absolute GIC during the following 30 minutes will exceed 3, 5, 10, or 20 amperes.
+| Program | Responsibility |
+| --- | --- |
+| [01](01_read_and_save_data/01_read_and_save_data.py) | Native GIC/Wind acquisition |
+| [02](02_data_preprocessing/02_data_preprocessing.py) | Input catalogue, source validation/recovery and native GIC aggregation |
+| [03](03_build_prediction_dataset/03_build_prediction_dataset.py) | Causal 49-feature construction, segments and future labels |
+| [04](04_train_cnn_bilstm/04_train_cnn_bilstm.py) | Models, training, selection, calibration, baseline and prediction |
+| [05](05_model_evaluation/05_model_evaluation.py) | Scores, bootstrap, warnings, coverage, interpretation and figures |
 
-The scientific workflow joins two time series: high-frequency VKH GIC observations and Wind spacecraft L1 magnetic-field and plasma observations. The source records are cleaned and converted to a common one-minute UTC timeline. Solar-wind features and physically motivated coupling functions are then calculated over several look-back windows. The resulting event-window sequences are passed to a CNN-BiLSTM model. Dilated residual one-dimensional convolution blocks learn short-term patterns, a bidirectional LSTM models temporal context, temporal attention highlights informative minutes, and gated fusion combines the learned representations. The model produces four exceedance probabilities and is trained with peak-event weighting, an auxiliary onset task, and a soft monotonicity penalty so that higher thresholds do not receive implausibly larger probabilities.
+The package includes source and documentation only. Observations, article documents, input catalogues, arrays, model weights, tables, figures and logs must be supplied or generated locally. Retain all five stage directories together: later programs load definitions from their numbered siblings.
 
-The evaluation protocol is chronological and event based. Candidate propagation lags are 30, 45, 60, and 90 minutes. Whole CME/CIR event blocks are assigned to development and test periods without mixing samples from the same event across splits. Expanding forward validation is used for model selection and operating-point calibration; the final test events remain isolated until the final evaluation step.
+## Environment
 
-Only source code, documentation, and small example input files are included. Raw observations, the supporting-information event catalogue, processed tables, labels, checkpoints, plots, and reports are generated locally and are excluded from version control.
-
-## Running the Pipeline
-
-Run the five stages from the repository root and keep this order. Stage 01 downloads or reads the original observations. Stage 02 cleans and aligns them. Stage 03 builds the labelled prediction timeline. Stage 04 trains the model. Stage 05 evaluates one completed training run.
-
-Install Python 3.10 or newer and the packages in `requirements.txt`:
+Use Python 3.12 or 3.13 in an isolated environment. Install a suitable CPU/CUDA PyTorch build and then:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-The standard command sequence is:
+Verification used Python 3.13.5, NumPy 2.1.3, pandas 2.2.3, SciPy 1.15.3, scikit-learn 1.7.1, PyTorch 2.7.0+cpu, Matplotlib 3.10.0, PyArrow 19.0.0 and SHAP 0.52.0. Archived neural-network training runs record PyTorch 2.6.0 with CUDA 12.4. Online recovery in Stage 02 also requires `curl` (`curl.exe` on Windows).
+
+## Run the pipeline
+
+Run from the repository root. First make the revised Supporting Information available locally. Only its input event/block tables S2/S3 are read; its reported scores are never used to fit or evaluate a model. Use an absolute path below in place of the example path.
 
 ```powershell
-python 01_read_and_save_data\01_read_and_save_data.py --download
-python 02_data_preprocessing\02_data_preprocessing.py --force-rebuild
-python 03_build_prediction_dataset\03_build_prediction_dataset.py --split-ratios 0.6 0.2 0.2 --output-dir data\prediction_dataset_6020
-python 04_train_cnn_bilstm\04_train_cnn_bilstm.py --dataset-dir data\prediction_dataset_6020 --lag 30 --window 30 --num-workers 0
-python 05_model_evaluation\05_model_evaluation.py --run-dir outputs\cnn_bilstm\
+python -B 01_read_and_save_data/01_read_and_save_data.py --download
+python -B 02_data_preprocessing/02_data_preprocessing.py --catalogue "D:/local/Supporting Information.docx" --kind plan
+python -B 02_data_preprocessing/02_data_preprocessing.py --catalogue "D:/local/Supporting Information.docx" --kind all --offline
+python -B 03_build_prediction_dataset/03_build_prediction_dataset.py
+python -B 04_train_cnn_bilstm/04_train_cnn_bilstm.py --phase search
+python -B 04_train_cnn_bilstm/04_train_cnn_bilstm.py --phase selected
+python -B 04_train_cnn_bilstm/04_train_cnn_bilstm.py --phase infer
+python -B 05_model_evaluation/05_model_evaluation.py --mode all
 ```
 
-Use `--help` on any stage to see all options. Stage 04 can train all twelve lag/window configurations with `--all-configurations`. On Windows, `--num-workers 0` is the most portable setting.
+Stage 01 can be skipped when native observations are already available. Stage 02 validates/reuses its files; remove `--offline` to recover missing revision sources from the providers. Alternatively, supply both extracted input catalogue CSVs as described in [Stage 02](02_data_preprocessing/02_README.md). A source failure terminates Stage 02 with a nonzero exit code. Resolve it before Stage 03.
 
-## Stage Documentation
+Stages 02–05 accept `--workspace "D:/local/gic_work"` to put local inputs and outputs elsewhere. Pass the same workspace to every stage. The unchanged Stage 01 always uses the repository's own `data/` directory; its sources must be placed under the chosen workspace before Stage 02 if using another workspace.
 
-The detailed purpose, inputs, processing, outputs, and command examples for each program are documented in `01_read_and_save_data/01_README.md`, `02_data_preprocessing/02_README.md`, `03_build_prediction_dataset/03_README.md`, `04_train_cnn_bilstm/04_README.md`, and `05_model_evaluation/05_README.md`.
+Independent boundary checks and a short training check:
 
-## Data and Reproducibility
+```powershell
+python -B 05_model_evaluation/05_model_evaluation.py --mode check
+python -B 04_train_cnn_bilstm/04_train_cnn_bilstm.py --phase smoke --device cpu
+```
 
-Data access requirements and provider links are described in [docs/DATA.md](docs/DATA.md). The chronological split policy, feature windows, target definition, and validation procedure are described in [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md). The `data example/` directory contains a small format example only.
+The smoke phase needs at least one prepared training segment containing all four positive classes. Its two-epoch check deliberately reuses a small training subset for internal validation/calibration and is unsuitable for scientific reporting. Full experiments use the disjoint partitions below. See the numbered READMEs for inputs, command options and prediction-only use.
 
-The original VKH GIC records, Wind observations, event catalogue, and any derived products remain subject to their providers' licences. Cite the associated manuscript and this software using `CITATION.cff`. Source code is released under the MIT License.
+## Experimental contract
 
-## Repository Structure
+All times are UTC. Inputs are upstream observations available strictly before issue time; historical GIC is used only for training/evaluation targets. The target is the maximum absolute native-minute GIC in `[s+h, s+h+30 min)`, thresholded using `>=`. Missing inputs or target minutes exclude a forecast; gaps are not interpolated.
 
-The five numbered directories contain the executable research stages. `data example/` documents the expected raw-file layout with small examples. `docs/` contains data-access and reproducibility notes. The root configuration files define dependencies, licensing, contribution rules, and automated interface checks.
+Blocks 1–30 train the models and preprocessing; 31–35 select delayed context using common eligible issue times; 36–40 calibrate probabilities; 41–49 form the event test. Calendar year 2022 is the complementary continuous evaluation. Training stride is five minutes and evaluation stride is one minute. Context delay and forecast horizon vary separately. Primary decisions use calibrated, ordered probabilities at a fixed cutoff of 0.5; calibration-selected CSI cutoffs are secondary.
+
+The architecture, Adam settings, early stopping, four-output loss and experiment grid are implemented in Stage 04. `experiment_protocol()` records these settings in each new neural run with a SHA-256 fingerprint. The embedded protocol records the executable settings used by each new run.
+
+Stage 05 generates Figures 1–7 and S1–S2 with the final submission's numbering, including the full 2022 forecast example. SHAP targets each calibrated, ordered output; attribution targets and association methods are described in the Stage 05 README.
+
+## Software archive and citation
+
+This software can be deposited directly in Zenodo as a software record. Cite the published record's specific version DOI and include the software citation in the associated article's reference list. The observation providers and local-input requirements are described in Stage 02; observations and trained model weights are not bundled with this source archive.
+
+MIT source license: [LICENSE](LICENSE). Observations and other external materials retain their providers' terms: [LICENSES.md](LICENSES.md).

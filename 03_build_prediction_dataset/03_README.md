@@ -1,21 +1,15 @@
-# Stage 03: Build the Prediction Dataset
-
-## Purpose
-
-`03_build_prediction_dataset.py` creates the canonical modelling timeline from the Stage 02 one-minute tables and the supporting-information CME/CIR event catalogue. It aligns solar-wind predictors with the GIC response, computes rolling statistics and physical coupling features, and represents the propagation delay explicitly.
-
-For each prediction time, the input sequence ends at `t - L`, where `L` is one of the candidate lags 30, 45, 60, or 90 minutes. The target is whether the maximum absolute GIC in `(t, t + 30 minutes]` exceeds 3, 5, 10, or 20 A. The script records target validity, excludes windows crossing unacceptable data gaps, and assigns complete event blocks to chronological train, validation, and test partitions.
-
-## Usage and required inputs
-
-Place the exact supporting-information document at the path described in `docs/DATA.md`, then run:
+# Stage 03: Features, segments and targets
 
 ```powershell
-python 03_build_prediction_dataset\03_build_prediction_dataset.py --split-ratios 0.6 0.2 0.2 --output-dir data\prediction_dataset_6020
+python -B 03_build_prediction_dataset/03_build_prediction_dataset.py
 ```
 
-The command reads `data/processed/GIC_1min_2012_2022.csv` and `data/processed/Wind_L1_1min_2012_2022.csv`. It writes the event timeline, feature metadata, split manifest, alignment reports, and optional yearly plots below the selected output directory. This is derived data, not source code, and must remain local.
+Requires the Stage 02 catalogues, validated monthly Wind observations and daily GIC minute files. `--workspace PATH` uses another local data root. `--force` rebuilds existing segments; `--available-only` permits preparing an incomplete local subset and prints its unavailable segment count. Complete formal experiments require every segment.
 
-## Handoff to training
+FA contains seven instantaneous inputs: `Btot, Bx_gsm, By_gsm, Bz_gsm, V, Np, Ma`. FB contains these plus proton dynamic pressure, southward electric-field proxy, Wind Epsilon, Newell coupling and `VBt_clock_proxy`; each of the 12 base features also has its trailing 30-minute mean, maximum and population standard deviation. The trailing southward-Bz integral adds the 49th feature. The exact order is `FEATURES` in this program and the locally written `data/feature_names.json`.
 
-Stage 04 consumes the generated `prediction_timeline.csv` and associated feature files. Keep the output directory intact for a training run; rebuilding it with different preprocessing or split arguments creates a different experiment.
+`VBt_clock_proxy = 1e-3 * V * hypot(By,Bz) * sin(theta/2)^2`, with `theta=atan2(By,Bz)`. This quantity is a solar-wind speed, transverse-field and clock-angle coupling proxy. Its definition and feature order are fixed in the program.
+
+All rolling windows are causal. Continuous one-minute UTC grids retain source gaps, and complete-window statistics require all 30 minutes. The documented problematic GIC dates are excluded by the reader. Target labels use the maximum absolute GIC in `[s+h,s+h+30 min)` and thresholds `>=3,5,10,20 A`; no target-minute interpolation is used. Eligibility and horizon-specific labels are formed by Stage 04.
+
+Outputs are ignored local `data/segments/block_01.npz` through `block_49.npz`, `continuous_2022.npz` and their JSON metadata. Arrays are `time` (UTC int64 nanoseconds), `x` (N by 49 float32), `gic`, `valid_native_samples`, and `in_block`. The preceding day supplies causal history; labels cannot cross a block's end. Keep matching NPZ and JSON files together. Feature-only prediction needs only `time` and `x` in the same order.

@@ -1,4 +1,4 @@
-# Upstream-only probabilistic GIC forecasting
+# Probabilistic Forecasting of Geomagnetically Induced Current Threshold Exceedance from L1 Solar Wind Observations
 
 Source code for station-specific forecasts of 30-minute GIC exceedances at 3, 5, 10 and 20 A. The software consists of five Python programs covering data acquisition, preprocessing, feature construction, model training and evaluation.
 

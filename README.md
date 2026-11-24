@@ -59,9 +59,3 @@ Blocks 1–30 train the models and preprocessing; 31–35 select delayed context
 The architecture, Adam settings, early stopping, four-output loss and experiment grid are implemented in Stage 04. `experiment_protocol()` records these settings in each new neural run with a SHA-256 fingerprint. The embedded protocol records the executable settings used by each new run.
 
 Stage 05 generates Figures 1–7 and S1–S2 with the final submission's numbering, including the full 2022 forecast example. SHAP targets each calibrated, ordered output; attribution targets and association methods are described in the Stage 05 README.
-
-## Software archive and citation
-
-The project repository is https://github.com/zhaochen176/Forecast-GIC. When publishing this version, create a release or tag so readers can identify the exact code used in the study. The observation providers and local-input requirements are described in Stage 02; observations and trained model weights are not bundled with this source archive.
-
-MIT source license: [LICENSE](LICENSE). Observations and other external materials retain their providers' terms: [LICENSES.md](LICENSES.md).
